@@ -2,8 +2,8 @@ package db
 
 import (
 	"fmt"
-	"noonbyte/platform/configs"
 
+	"github.com/noonbyte/platform/configs"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

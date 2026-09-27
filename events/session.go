@@ -3,7 +3,8 @@ package events
 import (
 	"encoding/json"
 	"fmt"
-	"noonbyte/platform/infrastructure/nats"
+
+	"github.com/noonbyte/platform/infrastructure/nats"
 
 	"github.com/rs/zerolog/log"
 )

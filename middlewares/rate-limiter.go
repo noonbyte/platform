@@ -1,11 +1,11 @@
 package middlewares
 
 import (
-	"noonbyte/platform/api"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/limiter"
+	"github.com/noonbyte/platform/api"
 )
 
 func RateLimiter(max int, duration time.Duration) fiber.Handler {

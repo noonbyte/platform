@@ -3,11 +3,11 @@ package server
 import (
 	"context"
 	"fmt"
-	"noonbyte/platform/configs"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/recover"
+	"github.com/noonbyte/platform/configs"
 	"github.com/rs/zerolog"
 )
 

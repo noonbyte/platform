@@ -1,9 +1,8 @@
 package middlewares
 
 import (
-	"noonbyte/platform/api"
-
 	"github.com/gofiber/fiber/v3"
+	"github.com/noonbyte/platform/api"
 )
 
 func NotFoundMiddleware() fiber.Handler {

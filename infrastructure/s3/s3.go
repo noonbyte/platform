@@ -2,10 +2,10 @@ package s3
 
 import (
 	"context"
-	"noonbyte/platform/configs"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/noonbyte/platform/configs"
 )
 
 type S3Client interface {

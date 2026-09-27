@@ -3,8 +3,8 @@ package rdb
 import (
 	"context"
 	"fmt"
-	"noonbyte/platform/configs"
 
+	"github.com/noonbyte/platform/configs"
 	"github.com/redis/go-redis/v9"
 )
 
