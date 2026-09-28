@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/noonbyte/platform/configs"
+	"github.com/noonbyte/platform/middlewares"
 	"github.com/rs/zerolog"
 )
 
@@ -20,6 +21,7 @@ func NewApp(c configs.AppConfiguration) *fiber.App {
 	})
 
 	app.Use(recover.New())
+	app.Use(middlewares.Logging())
 
 	app.Get("/health", func(c fiber.Ctx) error {
 		return c.JSON(fiber.Map{
