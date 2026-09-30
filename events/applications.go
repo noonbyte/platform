@@ -43,8 +43,11 @@ type ApplicationCreatedEventData struct {
 }
 
 type ApplicationUpdatedEventData struct {
-	ID               string `json:"id"`
-	Name             string `json:"name"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
+
+	Type string `json:"type"`
+
 	BundleIdentifier string `json:"bundle_identifier"`
 }
 
