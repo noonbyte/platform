@@ -25,6 +25,7 @@ func New(cfg configs.DatabaseConfiguration) (Database, error) {
 
 	conn, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: false,
+		TranslateError:                           true,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to DB: %w", err)
