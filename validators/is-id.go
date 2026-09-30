@@ -5,7 +5,7 @@ import (
 	"github.com/noonbyte/platform/api"
 )
 
-func isID(c fiber.Ctx, id string) error {
+func IsID(c fiber.Ctx, id string) error {
 	if len(id) != 32 {
 		return api.BadRequest(c, "ERR_VALIDATION", "Id is required")
 	}
