@@ -17,7 +17,7 @@ var (
 
 func SetupApplicationsStreams(n nats.NATS) error {
 	streams := map[string][]string{
-		"APPLICATIONS": {ApplicationCreatedSubject, ApplicationDeletedSubject},
+		"APPLICATIONS": {ApplicationCreatedSubject, ApplicationUpdatedSubject, ApplicationDeletedSubject},
 	}
 
 	var errors []error
