@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/noonbyte/platform/configs"
 	"github.com/noonbyte/platform/infrastructure/db"
 	"github.com/noonbyte/platform/infrastructure/nats"
 	"github.com/noonbyte/platform/infrastructure/rdb"
@@ -13,7 +14,11 @@ import (
 )
 
 func New(ctx context.Context, cfg Config) (*Dependencies, error) {
-	logger.Init(cfg.Logger)
+	logger.Init(logger.Config{
+		Console: configs.GetEnvAsBool("LOG_CONSOLE", true),
+		Level:   configs.GetEnv("LOG_LEVEL", "info"),
+		LogFile: configs.GetEnv("LOG_FILE", ""),
+	})
 
 	log.Info().
 		Str("service", cfg.AppName).

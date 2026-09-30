@@ -12,13 +12,8 @@ import (
 )
 
 type Config struct {
-	AppName     string
-	Version     string
-	Environment string
-	Level       string
-
+	Level   string
 	Console bool
-
 	LogFile string
 }
 
