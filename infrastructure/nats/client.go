@@ -8,7 +8,7 @@ import (
 
 type NATS interface {
 	Publish(subject string, data []byte) error
-	Subscribe(subject string) (<-chan *nats.Msg, error)
+	Subscribe(subject, consumerName string) (<-chan *nats.Msg, error)
 	StreamAdd(streamName string, subjects ...string) error
 }
 

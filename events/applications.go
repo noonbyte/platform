@@ -80,7 +80,7 @@ func PublishApplicationUpdated(n nats.NATS, data ApplicationUpdatedEventData) er
 		return err
 	}
 
-	if err := n.Publish(ApplicationCreatedSubject, encoded); err != nil {
+	if err := n.Publish(ApplicationUpdatedSubject, encoded); err != nil {
 		log.Error().Err(err).Msg("failed to publish application created event")
 		return err
 	}

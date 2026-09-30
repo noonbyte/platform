@@ -2,26 +2,40 @@ package nats
 
 import (
 	"fmt"
-	"strings"
 	"time"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/nats-io/nats.go"
 )
 
-func (n *natsClient) Subscribe(subject string) (<-chan *nats.Msg, error) {
+func (n *natsClient) Subscribe(
+	subject string,
+	consumerName string,
+) (<-chan *nats.Msg, error) {
 	ch := make(chan *nats.Msg)
 
-	sub, err := n.js.PullSubscribe(subject, sanitizeConsumerName(subject))
+	sub, err := n.js.PullSubscribe(subject, consumerName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to subscribe: %w", err)
 	}
 
 	go func() {
 		defer close(ch)
+
 		for {
-			msgs, err := sub.Fetch(10, nats.MaxWait(1*time.Second))
-			if err != nil && err != nats.ErrTimeout {
-				fmt.Printf("NATS fetch error: %v\n", err)
+			msgs, err := sub.Fetch(10, nats.MaxWait(time.Second))
+			if err != nil {
+				if err == nats.ErrTimeout {
+					continue
+				}
+
+				log.Error().
+					Err(err).
+					Str("subject", subject).
+					Str("consumer", consumerName).
+					Msg("NATS fetch error")
+
 				time.Sleep(time.Second)
 				continue
 			}
@@ -33,15 +47,4 @@ func (n *natsClient) Subscribe(subject string) (<-chan *nats.Msg, error) {
 	}()
 
 	return ch, nil
-}
-
-func sanitizeConsumerName(subject string) string {
-	name := strings.ReplaceAll(subject, ".", "_")
-	return name + "_consumer"
-}
-
-func AckMessages(msgs ...*nats.Msg) {
-	for _, msg := range msgs {
-		_ = msg.Ack()
-	}
 }
