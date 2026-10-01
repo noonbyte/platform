@@ -36,6 +36,9 @@ func New(ctx context.Context, cfg Config) (*Dependencies, error) {
 		deps.DB = database
 
 		log.Info().
+			Str("host", cfg.Database.Host).
+			Uint("port", cfg.Database.Port).
+			Str("username", cfg.Database.User).
 			Msg("database connected")
 	}
 

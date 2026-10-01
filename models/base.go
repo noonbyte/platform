@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -21,8 +22,11 @@ func (b *BaseModel) BeforeCreate(tx *gorm.DB) (err error) {
 		return nil
 	}
 
-	u := uuid.New().String()
-	b.ID = strings.ReplaceAll(u, "-", "")
+	u, err := uuid.NewV7()
+	if err != nil {
+		return fmt.Errorf("failed to create uuid: %w", err)
+	}
+	b.ID = strings.ReplaceAll(u.String(), "-", "")
 
 	return nil
 }
