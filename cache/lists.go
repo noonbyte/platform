@@ -38,7 +38,7 @@ func (c *EntityCache[T]) SetList(
 		ttl = rdb.ScaleTTL(ttl, 10)
 	}
 
-	pipe.Expire(ctx, key, c.ttl)
+	pipe.Expire(ctx, key, ttl)
 
 	_, err := pipe.Exec(ctx)
 	return err

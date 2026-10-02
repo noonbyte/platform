@@ -111,29 +111,45 @@ func (c *EntityCache[T]) GetMany(
 		return nil, err
 	}
 
+	result = append(result, entities...)
+
+	if err := c.SetMany(ctx, entities); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (c *EntityCache[T]) SetMany(
+	ctx context.Context,
+	entities []*T,
+) error {
+	if len(entities) == 0 {
+		return nil
+	}
+
+	pipe := c.client.Pipeline()
+
 	for _, entity := range entities {
 		if entity == nil {
 			continue
 		}
 
-		result = append(result, entity)
-
-		raw, err := json.Marshal(entity)
+		data, err := json.Marshal(entity)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		if err := c.client.Set(
+		pipe.Set(
 			ctx,
 			c.Key(c.ID(entity)),
-			raw,
+			data,
 			c.ttl,
-		).Err(); err != nil {
-			return nil, err
-		}
+		)
 	}
 
-	return result, nil
+	_, err := pipe.Exec(ctx)
+	return err
 }
 
 func (c *EntityCache[T]) Set(
