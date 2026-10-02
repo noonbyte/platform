@@ -4,48 +4,42 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
+	"github.com/noonbyte/platform/infrastructure/rdb"
 	"github.com/redis/go-redis/v9"
 )
 
-var ErrMiss = errors.New("cache miss")
-
 type EntityCache[T any] struct {
-	rdb    redis.Client
+	rdb    rdb.Redis
+	client redis.Client
+
 	prefix string
 	ttl    time.Duration
 	getID  func(*T) string
 }
 
 func NewEntity[T any](
-	rdb redis.Client,
+	rdb rdb.Redis,
 	prefix string,
 	ttl time.Duration,
 	getID func(*T) string,
 ) *EntityCache[T] {
 	return &EntityCache[T]{
 		rdb:    rdb,
+		client: *rdb.Client(),
+
 		prefix: prefix,
 		ttl:    ttl,
 		getID:  getID,
 	}
 }
 
-func (c *EntityCache[T]) Key(id string) string {
-	return fmt.Sprintf("%s:%s", c.prefix, id)
-}
-
-func (c *EntityCache[T]) ID(entity *T) string {
-	return c.getID(entity)
-}
-
 func (c *EntityCache[T]) Get(
 	ctx context.Context,
 	id string,
 ) (*T, error) {
-	value, err := c.rdb.Get(ctx, c.Key(id)).Result()
+	value, err := c.client.Get(ctx, c.Key(id)).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return nil, ErrMiss
@@ -78,7 +72,7 @@ func (c *EntityCache[T]) GetMany(
 		keys[i] = c.Key(id)
 	}
 
-	values, err := c.rdb.MGet(ctx, keys...).Result()
+	values, err := c.client.MGet(ctx, keys...).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +123,7 @@ func (c *EntityCache[T]) GetMany(
 			return nil, err
 		}
 
-		if err := c.rdb.Set(
+		if err := c.client.Set(
 			ctx,
 			c.Key(c.ID(entity)),
 			raw,
@@ -155,7 +149,7 @@ func (c *EntityCache[T]) Set(
 		return err
 	}
 
-	return c.rdb.Set(
+	return c.client.Set(
 		ctx,
 		c.Key(c.ID(entity)),
 		data,
@@ -167,5 +161,5 @@ func (c *EntityCache[T]) Delete(
 	ctx context.Context,
 	id string,
 ) error {
-	return c.rdb.Del(ctx, c.Key(id)).Err()
+	return c.client.Del(ctx, c.Key(id)).Err()
 }
