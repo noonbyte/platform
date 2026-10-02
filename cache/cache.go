@@ -16,19 +16,20 @@ type EntityCache[T any] struct {
 	rdb    redis.Client
 	prefix string
 	ttl    time.Duration
-
-	getID func(*T) string
+	getID  func(*T) string
 }
 
 func NewEntity[T any](
 	rdb redis.Client,
 	prefix string,
 	ttl time.Duration,
+	getID func(*T) string,
 ) *EntityCache[T] {
 	return &EntityCache[T]{
 		rdb:    rdb,
 		prefix: prefix,
 		ttl:    ttl,
+		getID:  getID,
 	}
 }
 
@@ -67,10 +68,8 @@ func (c *EntityCache[T]) GetMany(
 	ids []string,
 	loader func(ctx context.Context, ids []string) ([]*T, error),
 ) ([]*T, error) {
-	var result []*T = make([]*T, 0)
-
 	if len(ids) == 0 {
-		return result, nil
+		return []*T{}, nil
 	}
 
 	keys := make([]string, len(ids))
@@ -84,7 +83,7 @@ func (c *EntityCache[T]) GetMany(
 		return nil, err
 	}
 
-	result = make([]*T, len(ids))
+	result := make([]*T, 0, len(ids))
 	missing := make([]string, 0)
 
 	for i, value := range values {
@@ -118,10 +117,6 @@ func (c *EntityCache[T]) GetMany(
 		return nil, err
 	}
 
-	if len(entities) == 0 {
-		return result, nil
-	}
-
 	for _, entity := range entities {
 		if entity == nil {
 			continue
@@ -150,8 +145,11 @@ func (c *EntityCache[T]) GetMany(
 func (c *EntityCache[T]) Set(
 	ctx context.Context,
 	entity *T,
-	id string,
 ) error {
+	if entity == nil {
+		return nil
+	}
+
 	data, err := json.Marshal(entity)
 	if err != nil {
 		return err
@@ -159,7 +157,7 @@ func (c *EntityCache[T]) Set(
 
 	return c.rdb.Set(
 		ctx,
-		c.Key(id),
+		c.Key(c.ID(entity)),
 		data,
 		c.ttl,
 	).Err()
