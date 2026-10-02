@@ -5,9 +5,10 @@ import (
 	"fmt"
 
 	"github.com/noonbyte/platform/infrastructure/rdb"
+	"github.com/noonbyte/platform/specs"
 )
 
-func (c *EntityCache[T]) GetList(ctx context.Context, specs rdb.Specs) ([]string, error) {
+func (c *EntityCache[T]) GetList(ctx context.Context, specs specs.Specs) ([]string, error) {
 	result, err := c.client.SMembers(ctx, c.ListKey(specs)).Result()
 	if err != nil {
 		return nil, err
@@ -18,7 +19,7 @@ func (c *EntityCache[T]) GetList(ctx context.Context, specs rdb.Specs) ([]string
 
 func (c *EntityCache[T]) SetList(
 	ctx context.Context,
-	specs rdb.Specs,
+	specs specs.Specs,
 	ids []string,
 ) error {
 	key := c.ListKey(specs)
@@ -47,7 +48,7 @@ func (c *EntityCache[T]) AddToList(
 	ctx context.Context,
 	id string,
 ) error {
-	key := c.ListKey(rdb.NewSpecs())
+	key := c.ListKey(specs.NewSpecs())
 
 	exists, err := c.client.Exists(ctx, key).Result()
 	if err != nil {
@@ -66,7 +67,7 @@ func (c *EntityCache[T]) RemoveFromList(
 	ctx context.Context,
 	id string,
 ) error {
-	key := c.ListKey(rdb.NewSpecs())
+	key := c.ListKey(specs.NewSpecs())
 
 	exists, err := c.client.Exists(ctx, key).Result()
 	if err != nil {

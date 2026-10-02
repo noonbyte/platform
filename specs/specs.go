@@ -20,17 +20,17 @@ func (s Specs) With(name, value string) Specs {
 	return s
 }
 
-func GenerateKeyWithSpecs(specs Specs) *string {
-	if len(specs) == 0 {
+func (s Specs) String() *string {
+	if len(s) == 0 {
 		return nil
 	}
 
 	if os.Getenv("APP_ENVIRONMENT") == "development" {
-		value := formatSpecs(specs)
+		value := formatSpecs(s)
 		return &value
 	}
 
-	data, err := json.Marshal(specs)
+	data, err := json.Marshal(s)
 	if err != nil {
 		return nil
 	}
