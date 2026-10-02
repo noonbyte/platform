@@ -1,4 +1,4 @@
-package rdb
+package specs
 
 import (
 	"crypto/sha256"
