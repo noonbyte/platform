@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func (r *Redis) FlushKeysByPattern(
+func (r *rdb) FlushKeysByPattern(
 	ctx context.Context,
 	pattern string,
 ) error {

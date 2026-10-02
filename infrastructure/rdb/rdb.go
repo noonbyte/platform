@@ -8,11 +8,21 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type Redis struct {
+type Redis interface {
+	Client() *redis.Client
+	Close() error
+
+	FlushKeysByPattern(
+		ctx context.Context,
+		pattern string,
+	) error
+}
+
+type rdb struct {
 	client *redis.Client
 }
 
-func New(cfg configs.RedisConfiguration) (*Redis, error) {
+func New(cfg configs.RedisConfiguration) (Redis, error) {
 	r := redis.NewClient(&redis.Options{
 		Addr:     cfg.Addr,
 		Password: cfg.Password,
@@ -24,14 +34,14 @@ func New(cfg configs.RedisConfiguration) (*Redis, error) {
 		return nil, fmt.Errorf("failed to connect to Redis: %w", err)
 	}
 
-	return &Redis{client: r}, nil
+	return &rdb{client: r}, nil
 }
 
-func (r *Redis) Client() *redis.Client {
+func (r *rdb) Client() *redis.Client {
 	return r.client
 }
 
-func (r *Redis) Close() error {
+func (r *rdb) Close() error {
 	if r.client == nil {
 		return fmt.Errorf("redis: client not initialized")
 	}

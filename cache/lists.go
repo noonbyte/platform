@@ -30,6 +30,13 @@ func (c *EntityCache[T]) SetList(
 	pipe := c.client.TxPipeline()
 	pipe.Del(ctx, key)
 	pipe.SAdd(ctx, key, ids)
+
+	ttl := c.ttl
+
+	if len(specs) > 0 {
+		ttl = rdb.ScaleTTL(ttl, 10)
+	}
+
 	pipe.Expire(ctx, key, c.ttl)
 
 	_, err := pipe.Exec(ctx)
