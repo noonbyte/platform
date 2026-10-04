@@ -46,18 +46,18 @@ func (c *EntityCache[T]) SetList(
 
 func (c *EntityCache[T]) AddToList(
 	ctx context.Context,
+	specs specs.Specs,
 	id string,
 ) error {
-	key := c.ListKey(specs.NewSpecs())
+	key := c.ListKey(specs)
 
 	exists, err := c.client.Exists(ctx, key).Result()
 	if err != nil {
 		return err
 	}
+
 	if exists == 1 {
-		if err := c.client.SAdd(ctx, key, id).Err(); err != nil {
-			return err
-		}
+		return c.client.SAdd(ctx, key, id).Err()
 	}
 
 	return nil
@@ -65,18 +65,18 @@ func (c *EntityCache[T]) AddToList(
 
 func (c *EntityCache[T]) RemoveFromList(
 	ctx context.Context,
+	specs specs.Specs,
 	id string,
 ) error {
-	key := c.ListKey(specs.NewSpecs())
+	key := c.ListKey(specs)
 
 	exists, err := c.client.Exists(ctx, key).Result()
 	if err != nil {
 		return err
 	}
+
 	if exists == 1 {
-		if err := c.client.SRem(ctx, key, id).Err(); err != nil {
-			return err
-		}
+		return c.client.SRem(ctx, key, id).Err()
 	}
 
 	return nil
