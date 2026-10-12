@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"runtime/debug"
 	"time"
@@ -25,28 +24,32 @@ func NewApp(c configs.AppConfiguration) *fiber.App {
 	})
 
 	app.Use(recover.New(recover.Config{
-		PanicHandler: func(c fiber.Ctx, r any) error {
+		EnableStackTrace: false,
+		PanicHandler: func(c fiber.Ctx, recovered any) error {
+			var err error
 			stack := debug.Stack()
 
-			if err, ok := r.(error); ok {
-				log.Error().
-					Err(err).
-					Str("panic", "recovered").
-					Str("method", c.Method()).
-					Str("path", c.Path()).
-					Bytes("stack", stack).
-					Msg("Unhandled panic")
-
-				return api.InternalServerError(c, err)
-			}
-			log.Error().
-				Interface("panic", r).
+			event := log.Error().
 				Str("method", c.Method()).
 				Str("path", c.Path()).
-				Bytes("stack", stack).
-				Msg("Unhandled panic")
+				Str("ip", c.IP()).
+				Str("request_id", c.Get("X-Request-ID")).
+				Str("panic_type", fmt.Sprintf("%T", recovered))
 
-			return api.InternalServerError(c, errors.New("unknown error"))
+			err, ok := recovered.(error)
+			if ok {
+				event = event.Err(err)
+			} else {
+				event = event.Interface("panic", recovered)
+			}
+
+			event.Msgf(
+				"Unhandled panic: %v\n\nStack trace:\n%s",
+				recovered,
+				stack,
+			)
+
+			return api.InternalServerError(c, err)
 		},
 	}))
 
