@@ -2,14 +2,18 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"runtime/debug"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/recover"
+	"github.com/noonbyte/platform/api"
 	"github.com/noonbyte/platform/configs"
 	"github.com/noonbyte/platform/middlewares"
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 func NewApp(c configs.AppConfiguration) *fiber.App {
@@ -20,7 +24,32 @@ func NewApp(c configs.AppConfiguration) *fiber.App {
 		IdleTimeout:  60 * time.Second,
 	})
 
-	app.Use(recover.New())
+	app.Use(recover.New(recover.Config{
+		PanicHandler: func(c fiber.Ctx, r any) error {
+			stack := debug.Stack()
+
+			if err, ok := r.(error); ok {
+				log.Error().
+					Err(err).
+					Str("panic", "recovered").
+					Str("method", c.Method()).
+					Str("path", c.Path()).
+					Bytes("stack", stack).
+					Msg("Unhandled panic")
+
+				return api.InternalServerError(c, err)
+			}
+			log.Error().
+				Interface("panic", r).
+				Str("method", c.Method()).
+				Str("path", c.Path()).
+				Bytes("stack", stack).
+				Msg("Unhandled panic")
+
+			return api.InternalServerError(c, errors.New("unknown error"))
+		},
+	}))
+
 	app.Use(middlewares.Logging())
 
 	app.Get("/health", func(c fiber.Ctx) error {
