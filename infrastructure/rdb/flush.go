@@ -3,11 +3,13 @@ package rdb
 import (
 	"context"
 	"fmt"
+	"path"
 )
 
 func (r *rdb) FlushKeysByPattern(
 	ctx context.Context,
 	pattern string,
+	excludePatterns ...string,
 ) error {
 	const batchSize = 1000
 
@@ -16,7 +18,25 @@ func (r *rdb) FlushKeysByPattern(
 	iter := r.client.Scan(ctx, 0, pattern, batchSize).Iterator()
 
 	for iter.Next(ctx) {
-		keys = append(keys, iter.Val())
+		key := iter.Val()
+
+		excluded := false
+		for _, excludePattern := range excludePatterns {
+			matched, err := path.Match(excludePattern, key)
+			if err != nil {
+				return fmt.Errorf("match exclude pattern %q: %w", excludePattern, err)
+			}
+			if matched {
+				excluded = true
+				break
+			}
+		}
+
+		if excluded {
+			continue
+		}
+
+		keys = append(keys, key)
 
 		if len(keys) < batchSize {
 			continue

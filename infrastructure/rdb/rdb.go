@@ -15,6 +15,7 @@ type Redis interface {
 	FlushKeysByPattern(
 		ctx context.Context,
 		pattern string,
+		excludePatterns ...string,
 	) error
 }
 
