@@ -33,8 +33,7 @@ func NewApp(c configs.AppConfiguration) *fiber.App {
 				Str("method", c.Method()).
 				Str("path", c.Path()).
 				Str("ip", c.IP()).
-				Str("request_id", c.Get("X-Request-ID")).
-				Str("panic_type", fmt.Sprintf("%T", recovered))
+				Str("request_id", c.Get("X-Request-ID"))
 
 			err, ok := recovered.(error)
 			if ok {
