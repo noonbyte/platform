@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -9,6 +10,7 @@ import (
 
 func Logging() fiber.Handler {
 	logger := log.Logger
+	isDev := os.Getenv("APP_ENVIRONMENT") == "dev"
 
 	return func(c fiber.Ctx) error {
 		start := time.Now()
@@ -31,15 +33,20 @@ func Logging() fiber.Handler {
 			event = logger.Warn()
 		}
 
-		event.
+		event = event.
 			Str("request_id", c.GetRespHeader("X-Request-ID")).
 			Str("method", c.Method()).
 			Str("path", c.Path()).
 			Str("ip", c.IP()).
 			Str("user_agent", c.Get("User-Agent")).
 			Int("status", status).
-			Int64("latency_ms", time.Since(start).Milliseconds()).
-			Msg("http request")
+			Int64("latency_ms", time.Since(start).Milliseconds())
+
+		if isDev {
+			event = event.Str("query", string(c.Request().URI().QueryString()))
+		}
+
+		event.Msg("http request")
 
 		return err
 	}
