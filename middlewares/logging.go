@@ -10,7 +10,7 @@ import (
 
 func Logging() fiber.Handler {
 	logger := log.Logger
-	isDev := os.Getenv("APP_ENVIRONMENT") == "dev"
+	isDev := os.Getenv("APP_ENVIRONMENT") == "development"
 
 	return func(c fiber.Ctx) error {
 		start := time.Now()
