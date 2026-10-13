@@ -14,6 +14,8 @@ func (s Specs) GetOr(name, fallback string) string {
 		return value
 	}
 
+	s[name] = fallback
+
 	return fallback
 }
 
