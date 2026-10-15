@@ -1,13 +1,13 @@
 package specs
 
 type Pagination struct {
-	Page  int64 `json:"page"`
-	Limit int64 `json:"limit"`
+	Specs  Specs
+	Config PaginationConfig
 }
 
 type PaginationConfig struct {
-	DefaultLimit int64
-	MaxLimit     int64
+	DefaultLimit int
+	MaxLimit     int
 }
 
 func DefaultPaginationConfig() PaginationConfig {
@@ -17,70 +17,65 @@ func DefaultPaginationConfig() PaginationConfig {
 	}
 }
 
-func (s Specs) Pagination() (Pagination, error) {
-	return s.PaginationWithConfig(DefaultPaginationConfig())
+func (s Specs) Pagination(config PaginationConfig) Pagination {
+	return Pagination{
+		Specs:  s,
+		Config: config,
+	}
 }
 
-func (s Specs) PaginationWithConfig(
-	config PaginationConfig,
-) (Pagination, error) {
-	if config.DefaultLimit < 1 {
+func (p Pagination) Set(page, limit *int) {
+	config := p.Config
+
+	if config.DefaultLimit <= 0 {
 		config.DefaultLimit = 20
 	}
 
-	if config.MaxLimit < config.DefaultLimit {
+	if config.MaxLimit <= 0 {
 		config.MaxLimit = 100
 	}
 
-	p := Pagination{
-		Page:  1,
-		Limit: config.DefaultLimit,
+	pageValue := 1
+	if page != nil && *page > 0 {
+		pageValue = *page
 	}
 
-	page, exists, err := s.GetInt64("page")
-	if err != nil {
-		return p, err
-	}
-	if exists {
-		p.Page = page
+	limitValue := config.DefaultLimit
+	if limit != nil && *limit > 0 {
+		limitValue = *limit
 	}
 
-	limit, exists, err := s.GetInt64("limit")
-	if err != nil {
-		return p, err
-	}
-	if exists {
-		p.Limit = limit
+	if limitValue > config.MaxLimit {
+		limitValue = config.MaxLimit
 	}
 
-	if p.Page < 1 {
-		p.Page = 1
-	}
+	p.Specs.WithInt("page", &pageValue)
+	p.Specs.WithInt("limit", &limitValue)
+}
 
-	if p.Limit < 1 {
-		p.Limit = config.DefaultLimit
-	}
+func (p Pagination) Page() int64 {
+	value, _, _ := p.Specs.GetInt("page")
+	return int64(value)
+}
 
-	if p.Limit > config.MaxLimit {
-		p.Limit = config.MaxLimit
-	}
-
-	return p, nil
+func (p Pagination) Limit() int64 {
+	value, _, _ := p.Specs.GetInt("limit")
+	return int64(value)
 }
 
 func (p Pagination) Offset() int64 {
-	return (p.Page - 1) * p.Limit
+	return (p.Page() - 1) * p.Limit()
 }
 
 func (p Pagination) HasMore(total int64) bool {
-	return p.Offset()+p.Limit < total
+	return p.Offset()+p.Limit() < total
 }
 
 func (p Pagination) Meta(total int64) PageMeta {
 	return PageMeta{
 		Total:   total,
-		Page:    p.Page,
-		Limit:   p.Limit,
+		Page:    p.Page(),
+		Limit:   p.Limit(),
 		HasMore: p.HasMore(total),
 	}
 }
