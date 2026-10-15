@@ -4,9 +4,9 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"maps"
 	"os"
 	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -16,33 +16,58 @@ func NewSpecs() Specs {
 	return Specs{}
 }
 
-func (s Specs) With(name, value string) Specs {
-	s[name] = value
+func (s Specs) With(key, value string) Specs {
+	if s == nil {
+		s = make(Specs)
+	}
+
+	s[key] = value
 	return s
 }
 
-func (s Specs) WithString(key string, value *string) Specs {
-	if value != nil {
-		s[key] = *value
+func (s Specs) Get(key string) (string, bool) {
+	value, ok := s[key]
+	return value, ok
+}
+
+func (s Specs) GetOr(name, fallback string) string {
+	if value, ok := s[name]; ok {
+		return value
 	}
 
+	s[name] = fallback
+
+	return fallback
+}
+
+func (s Specs) Has(key string) bool {
+	_, ok := s[key]
+	return ok
+}
+
+func (s Specs) Delete(key string) {
+	delete(s, key)
+}
+
+func (s Specs) Clone() Specs {
+	result := make(Specs, len(s))
+
+	maps.Copy(result, s)
+
+	return result
+}
+
+func (s Specs) Merge(other Specs) Specs {
+	maps.Copy(s, other)
 	return s
 }
 
-func (s Specs) WithInt64(key string, value *int64) Specs {
-	if value != nil {
-		s[key] = strconv.FormatInt(*value, 10)
-	}
-
-	return s
+func (s Specs) IsEmpty() bool {
+	return len(s) == 0
 }
 
-func (s Specs) WithBool(key string, value *bool) Specs {
-	if value != nil {
-		s[key] = strconv.FormatBool(*value)
-	}
-
-	return s
+func (s Specs) Len() int {
+	return len(s)
 }
 
 func (s Specs) String() *string {
