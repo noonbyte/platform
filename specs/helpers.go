@@ -1,12 +1,15 @@
 package specs
 
+import "maps"
+
 func (s Specs) Has(name string) bool {
 	_, ok := s[name]
 	return ok
 }
 
-func (s Specs) Get(name string) string {
-	return s[name]
+func (s Specs) Get(name string) (string, bool) {
+	value, ok := s[name]
+	return value, ok
 }
 
 func (s Specs) GetOr(name, fallback string) string {
@@ -31,18 +34,13 @@ func (s Specs) Delete(name string) Specs {
 func (s Specs) Clone() Specs {
 	result := make(Specs, len(s))
 
-	for key, value := range s {
-		result[key] = value
-	}
+	maps.Copy(result, s)
 
 	return result
 }
 
 func (s Specs) Merge(other Specs) Specs {
-	for key, value := range other {
-		s[key] = value
-	}
-
+	maps.Copy(s, other)
 	return s
 }
 
