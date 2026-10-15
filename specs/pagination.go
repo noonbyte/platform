@@ -11,10 +11,10 @@ type Pagination struct {
 }
 
 type PageMeta struct {
-	Total   int64 `json:"total"`
-	Page    int64 `json:"page"`
-	Limit   int64 `json:"limit"`
-	HasMore bool  `json:"has_more"`
+	Total   int  `json:"total"`
+	Page    int  `json:"page"`
+	Limit   int  `json:"limit"`
+	HasMore bool `json:"has_more"`
 }
 
 func (s Specs) Pagination() Pagination {
@@ -42,25 +42,25 @@ func (p Pagination) Set(page, limit *int) {
 	p.specs.WithInt("limit", &limitValue)
 }
 
-func (p Pagination) Page() int64 {
+func (p Pagination) Page() int {
 	value, _, _ := p.specs.GetInt("page")
-	return int64(value)
+	return value
 }
 
-func (p Pagination) Limit() int64 {
+func (p Pagination) Limit() int {
 	value, _, _ := p.specs.GetInt("limit")
-	return int64(value)
+	return value
 }
 
-func (p Pagination) Offset() int64 {
+func (p Pagination) Offset() int {
 	return (p.Page() - 1) * p.Limit()
 }
 
-func (p Pagination) HasMore(total int64) bool {
+func (p Pagination) HasMore(total int) bool {
 	return p.Offset()+p.Limit() < total
 }
 
-func (p Pagination) Meta(total int64) PageMeta {
+func (p Pagination) Meta(total int) PageMeta {
 	return PageMeta{
 		Total:   total,
 		Page:    p.Page(),
