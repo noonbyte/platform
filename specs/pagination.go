@@ -1,65 +1,54 @@
 package specs
 
+const (
+	DefaultPage  = 1
+	DefaultLimit = 20
+	MaxLimit     = 100
+)
+
 type Pagination struct {
-	Specs  Specs
-	Config PaginationConfig
+	specs Specs
 }
 
-type PaginationConfig struct {
-	DefaultLimit int
-	MaxLimit     int
+type PageMeta struct {
+	Total   int64 `json:"total"`
+	Page    int64 `json:"page"`
+	Limit   int64 `json:"limit"`
+	HasMore bool  `json:"has_more"`
 }
 
-func DefaultPaginationConfig() PaginationConfig {
-	return PaginationConfig{
-		DefaultLimit: 20,
-		MaxLimit:     100,
-	}
-}
-
-func (s Specs) Pagination(config PaginationConfig) Pagination {
+func (s Specs) Pagination() Pagination {
 	return Pagination{
-		Specs:  s,
-		Config: config,
+		specs: s,
 	}
 }
 
 func (p Pagination) Set(page, limit *int) {
-	config := p.Config
-
-	if config.DefaultLimit <= 0 {
-		config.DefaultLimit = 20
-	}
-
-	if config.MaxLimit <= 0 {
-		config.MaxLimit = 100
-	}
-
-	pageValue := 1
+	pageValue := DefaultPage
 	if page != nil && *page > 0 {
 		pageValue = *page
 	}
 
-	limitValue := config.DefaultLimit
+	limitValue := DefaultLimit
 	if limit != nil && *limit > 0 {
 		limitValue = *limit
 	}
 
-	if limitValue > config.MaxLimit {
-		limitValue = config.MaxLimit
+	if limitValue > MaxLimit {
+		limitValue = MaxLimit
 	}
 
-	p.Specs.WithInt("page", &pageValue)
-	p.Specs.WithInt("limit", &limitValue)
+	p.specs.WithInt("page", &pageValue)
+	p.specs.WithInt("limit", &limitValue)
 }
 
 func (p Pagination) Page() int64 {
-	value, _, _ := p.Specs.GetInt("page")
+	value, _, _ := p.specs.GetInt("page")
 	return int64(value)
 }
 
 func (p Pagination) Limit() int64 {
-	value, _, _ := p.Specs.GetInt("limit")
+	value, _, _ := p.specs.GetInt("limit")
 	return int64(value)
 }
 
@@ -78,11 +67,4 @@ func (p Pagination) Meta(total int64) PageMeta {
 		Limit:   p.Limit(),
 		HasMore: p.HasMore(total),
 	}
-}
-
-type PageMeta struct {
-	Total   int64 `json:"total"`
-	Page    int64 `json:"page"`
-	Limit   int64 `json:"limit"`
-	HasMore bool  `json:"has_more"`
 }
