@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -17,6 +18,30 @@ func NewSpecs() Specs {
 
 func (s Specs) With(name, value string) Specs {
 	s[name] = value
+	return s
+}
+
+func (s Specs) WithString(key string, value *string) Specs {
+	if value != nil {
+		s[key] = *value
+	}
+
+	return s
+}
+
+func (s Specs) WithInt64(key string, value *int64) Specs {
+	if value != nil {
+		s[key] = strconv.FormatInt(*value, 10)
+	}
+
+	return s
+}
+
+func (s Specs) WithBool(key string, value *bool) Specs {
+	if value != nil {
+		s[key] = strconv.FormatBool(*value)
+	}
+
 	return s
 }
 
