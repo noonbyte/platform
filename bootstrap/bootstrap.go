@@ -57,7 +57,7 @@ func New(ctx context.Context, cfg Config) (*Dependencies, error) {
 	}
 
 	if cfg.NATS != nil {
-		natsClient, err := nats.New(cfg.NATS.Server)
+		natsClient, err := nats.New(fmt.Sprintf("nats://%s:%d", cfg.NATS.Host, cfg.NATS.Port))
 		if err != nil {
 			_ = deps.Close()
 

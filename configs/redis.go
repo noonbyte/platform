@@ -1,15 +1,17 @@
 package configs
 
 type RedisConfiguration struct {
-	Addr     string
+	Host     string
+	Port     int
 	Password string
-	DB       int
+	Database int
 }
 
 func GetRedisConfiguration() *RedisConfiguration {
 	return &RedisConfiguration{
-		Addr:     GetEnv("REDIS_ADDR", "localhost:6379"),
+		Host:     GetEnv("REDIS_HOST", "localhost"),
+		Port:     GetEnvAsInt("REDIS_PORT", 6379),
 		Password: GetEnv("REDIS_PASSWORD", ""),
-		DB:       GetEnvAsInt("REDIS_DB", 0),
+		Database: GetEnvAsInt("REDIS_DB", 0),
 	}
 }

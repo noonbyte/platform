@@ -25,9 +25,9 @@ type rdb struct {
 
 func New(cfg configs.RedisConfiguration) (Redis, error) {
 	r := redis.NewClient(&redis.Options{
-		Addr:     cfg.Addr,
+		Addr:     fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 		Password: cfg.Password,
-		DB:       cfg.DB,
+		DB:       cfg.Database,
 	})
 
 	// Test connection
