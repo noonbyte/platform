@@ -21,6 +21,8 @@ func NewApp(c configs.AppConfiguration) *fiber.App {
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 		IdleTimeout:  60 * time.Second,
+
+		TrustProxy: true,
 	})
 
 	app.Use(recover.New(recover.Config{
