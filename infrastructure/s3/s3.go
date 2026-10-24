@@ -26,7 +26,7 @@ func New(cfg *configs.S3Configuration) (S3Client, error) {
 			"",
 		),
 		Region: cfg.Region,
-		Secure: true,
+		Secure: cfg.Secure,
 	})
 	if err != nil {
 		return nil, err

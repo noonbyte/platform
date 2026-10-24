@@ -6,6 +6,8 @@ type S3Configuration struct {
 	SecretAccessKey string
 	Region          string
 	Bucket          string
+
+	Secure bool
 }
 
 func GetS3Configuration() *S3Configuration {
@@ -15,5 +17,7 @@ func GetS3Configuration() *S3Configuration {
 		SecretAccessKey: GetEnv("S3_SECRET_ACCESS_KEY", ""),
 		Region:          GetEnv("S3_REGION", "us-east-1"),
 		Bucket:          GetEnv("S3_BUCKET", "noonbyte"),
+
+		Secure: GetEnvAsBool("S3_SECURE", true),
 	}
 }
