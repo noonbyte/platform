@@ -2,11 +2,14 @@ package db
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"time"
 
 	"github.com/noonbyte/platform/configs"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type Database interface {
@@ -24,9 +27,23 @@ func New(cfg configs.DatabaseConfiguration) (Database, error) {
 		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Name,
 	)
 
+	logger := logger.New(
+		log.New(
+			os.Stdout,
+			"\r\n",
+			log.LstdFlags,
+		),
+		logger.Config{
+			LogLevel:                  logger.Info,
+			IgnoreRecordNotFoundError: true,
+			Colorful:                  true,
+		},
+	)
+
 	conn, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: false,
 		TranslateError:                           true,
+		Logger:                                   logger,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to DB: %w", err)
