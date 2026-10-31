@@ -9,7 +9,7 @@ import (
 	"github.com/noonbyte/platform/configs"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	gormlogger "gorm.io/gorm/logger"
 )
 
 type Database interface {
@@ -24,26 +24,28 @@ type database struct {
 func New(cfg configs.DatabaseConfiguration) (Database, error) {
 	dsn := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Name,
+		cfg.Host,
+		cfg.Port,
+		cfg.User,
+		cfg.Password,
+		cfg.Name,
 	)
 
-	logger := logger.New(
-		log.New(
-			os.Stdout,
-			"\r\n",
-			log.LstdFlags,
-		),
-		logger.Config{
-			LogLevel:                  logger.Info,
+	gormLog := gormlogger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags|log.Lmicroseconds),
+		gormlogger.Config{
+			SlowThreshold:             500 * time.Millisecond,
+			LogLevel:                  gormlogger.Warn,
 			IgnoreRecordNotFoundError: true,
 			Colorful:                  true,
+			ParameterizedQueries:      true,
 		},
 	)
 
 	conn, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: false,
 		TranslateError:                           true,
-		Logger:                                   logger,
+		Logger:                                   gormLog,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to DB: %w", err)
