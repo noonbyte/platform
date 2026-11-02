@@ -8,6 +8,15 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/rs/zerolog"
+)
+
+const (
+	reset = "\033[0m"
+	bold  = "\033[1m"
+	dim   = "\033[2m"
+	blue  = "\033[34m"
 )
 
 type PrettyWriter struct {
@@ -23,7 +32,16 @@ func (w PrettyWriter) Write(p []byte) (int, error) {
 
 	var buf bytes.Buffer
 
-	level := strings.ToUpper(fmt.Sprint(event["level"]))
+	level := zerolog.InfoLevel
+	if value, ok := event["level"]; ok {
+		if parsed, err := zerolog.ParseLevel(fmt.Sprint(value)); err == nil {
+			level = parsed
+		}
+	}
+
+	levelName := strings.ToUpper(level.String())
+	levelColor := zerolog.LevelColors[level]
+
 	message := fmt.Sprint(event["message"])
 
 	timestamp := ""
@@ -35,12 +53,19 @@ func (w PrettyWriter) Write(p []byte) (int, error) {
 		timestamp = parsed.Format("15:04:05")
 	}
 
-	fmt.Fprintf(&buf, "%s %-5s %s\n", timestamp, level, message)
+	fmt.Fprintf(
+		&buf,
+		"%s%s%s %s%-5s%s %s%s%s\n",
+		dim, timestamp, reset,
+		fmt.Sprintf("\033[%dm", levelColor), levelName, reset,
+		bold, message, reset,
+	)
 
 	keys := make([]string, 0, len(event))
 
 	for key := range event {
-		if key == "level" || key == "time" || key == "message" {
+		switch key {
+		case "level", "time", "message":
 			continue
 		}
 
@@ -50,11 +75,21 @@ func (w PrettyWriter) Write(p []byte) (int, error) {
 	sort.Strings(keys)
 
 	for _, key := range keys {
-		fmt.Fprintf(&buf, "             %-12s = %v\n", key, event[key])
+		value, _ := json.Marshal(event[key])
+
+		fmt.Fprintf(
+			&buf,
+			"             %s%-16s%s %s= %s%s\n",
+			blue, key, reset,
+			dim, string(value), reset,
+		)
 	}
 
-	_, err := w.Out.Write(buf.Bytes())
-	if err != nil {
+	if w.Out == nil {
+		return 0, fmt.Errorf("pretty writer: output is nil")
+	}
+
+	if _, err := w.Out.Write(buf.Bytes()); err != nil {
 		return 0, err
 	}
 
