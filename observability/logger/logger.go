@@ -5,10 +5,9 @@ import (
 	"os"
 	"time"
 
-	"gopkg.in/natefinch/lumberjack.v2"
-
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 type Config struct {
@@ -24,47 +23,37 @@ func Init(cfg Config) {
 	}
 
 	zerolog.SetGlobalLevel(level)
-
 	zerolog.TimeFieldFormat = time.RFC3339Nano
 
 	var writers []io.Writer
 
 	if cfg.Console {
-		writers = append(
-			writers,
-			zerolog.ConsoleWriter{
+		writers = append(writers, PrettyWriter{
+			Out: zerolog.ConsoleWriter{
 				Out:        os.Stdout,
-				TimeFormat: time.RFC3339,
+				TimeFormat: "15:04:05",
+				NoColor:    false,
 			},
-		)
+		})
 	} else {
-		writers = append(
-			writers,
-			os.Stdout,
-		)
+		writers = append(writers, os.Stdout)
 	}
 
 	if cfg.LogFile != "" {
-		writers = append(
-			writers,
-			&lumberjack.Logger{
-				Filename:   cfg.LogFile,
-				MaxSize:    100, // MB
-				MaxBackups: 5,
-				MaxAge:     30,
-				Compress:   true,
-			},
-		)
+		writers = append(writers, &lumberjack.Logger{
+			Filename:   cfg.LogFile,
+			MaxSize:    100,
+			MaxBackups: 5,
+			MaxAge:     30,
+			Compress:   true,
+		})
 	}
 
-	multi := zerolog.MultiLevelWriter(writers...)
-
-	logger := zerolog.New(multi).
+	logger := zerolog.New(zerolog.MultiLevelWriter(writers...)).
 		With().
 		Timestamp().
 		Logger()
 
 	log.Logger = logger
-
 	zerolog.DefaultContextLogger = &logger
 }
