@@ -29,11 +29,7 @@ func Init(cfg Config) {
 
 	if cfg.Console {
 		writers = append(writers, PrettyWriter{
-			Out: zerolog.ConsoleWriter{
-				Out:        os.Stdout,
-				TimeFormat: "15:04:05",
-				NoColor:    false,
-			},
+			Out: os.Stdout,
 		})
 	} else {
 		writers = append(writers, os.Stdout)
