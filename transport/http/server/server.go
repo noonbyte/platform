@@ -58,6 +58,7 @@ func NewApp(c configs.AppConfiguration) *fiber.App {
 	app.Use(middlewares.Logging())
 
 	app.Use(prometheus.New(prometheus.Config{
+		ServiceName:       c.Name,
 		SkipURIs:          []string{"/health", "/internal/*"},
 		SkipStatusClasses: []string{"4xx"},
 	}))

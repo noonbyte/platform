@@ -1,6 +1,8 @@
 package configs
 
 type AppConfiguration struct {
+	Name string
+
 	Host string
 	Port int
 
@@ -11,6 +13,7 @@ type AppConfiguration struct {
 
 func GetAppConfiguration() *AppConfiguration {
 	return &AppConfiguration{
+		Name: GetEnv("APP_NAME", "backend"),
 		Host: GetEnv("APP_HOST", "0.0.0.0"),
 		Port: GetEnvAsInt("APP_PORT", 8080),
 
