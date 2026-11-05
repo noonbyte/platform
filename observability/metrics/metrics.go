@@ -12,7 +12,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"go.uber.org/zap"
+	"github.com/rs/zerolog/log"
 )
 
 type Metrics struct {
@@ -259,7 +259,6 @@ func (m *Metrics) StartRuntimeMetrics(ctx context.Context) {
 func (m *Metrics) StartServer(
 	ctx context.Context,
 	configuration configs.PrometheusConfiguration,
-	log *zap.SugaredLogger,
 ) error {
 	host := fmt.Sprintf(
 		"%s:%d",
@@ -290,7 +289,7 @@ func (m *Metrics) StartServer(
 	serverErrors := make(chan error, 1)
 
 	go func() {
-		log.Infof("Metrics server starting on http://%s/metrics", host)
+		log.Info().Str("host", host).Msg("Metrics server starting")
 
 		if err := m.server.ListenAndServe(); err != nil &&
 			err != http.ErrServerClosed {
@@ -304,7 +303,7 @@ func (m *Metrics) StartServer(
 		return fmt.Errorf("metrics server failed: %w", err)
 	}
 
-	log.Info("Shutting down metrics server gracefully...")
+	log.Info().Msg("Shutting down metrics server gracefully...")
 
 	shutdownCtx, cancel := context.WithTimeout(
 		context.Background(),
@@ -321,7 +320,7 @@ func (m *Metrics) StartServer(
 		)
 	}
 
-	log.Info("Metrics server stopped gracefully")
+	log.Info().Msg("Metrics server stopped gracefully")
 
 	return nil
 }
