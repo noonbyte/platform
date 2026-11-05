@@ -9,26 +9,36 @@ import (
 
 func (m *Metrics) Middleware() fiber.Handler {
 	return func(c fiber.Ctx) error {
-		m.HttpRequestsInProgress.Inc()
-		defer m.HttpRequestsInProgress.Dec()
-
 		start := time.Now()
+
+		m.IncRequestsInProgress()
+		defer m.DecRequestsInProgress()
+
 		err := c.Next()
-		duration := time.Since(start).Seconds()
-		status := strconv.Itoa(c.Response().StatusCode())
 
-		m.HttpRequestsTotal.WithLabelValues(
-			c.Method(),
-			c.Path(),
-			status,
-		).Inc()
+		status := c.Response().StatusCode()
+		if err != nil {
+			status = fiber.StatusInternalServerError
+		}
 
-		m.HttpRequestDuration.WithLabelValues(
+		path := c.Route().Path
+		if path == "" {
+			path = "unmatched"
+		}
+
+		m.RecordRequest(
 			c.Method(),
-			c.Path(),
+			path,
 			status,
-		).Observe(duration)
+			time.Since(start),
+			int64(len(c.Request().Body())),
+			int64(len(c.Response().Body())),
+		)
 
 		return err
 	}
+}
+
+func (m *Metrics) StatusCode(status int) string {
+	return strconv.Itoa(status)
 }
