@@ -6,6 +6,7 @@ import (
 	"runtime/debug"
 	"time"
 
+	"github.com/gofiber/contrib/v3/prometheus"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/noonbyte/platform/api"
@@ -55,6 +56,11 @@ func NewApp(c configs.AppConfiguration) *fiber.App {
 	}))
 
 	app.Use(middlewares.Logging())
+
+	app.Use(prometheus.New(prometheus.Config{
+		SkipURIs:          []string{"/health", "/internal/*"},
+		SkipStatusClasses: []string{"4xx"},
+	}))
 
 	app.Get("/health", func(c fiber.Ctx) error {
 		return c.JSON(fiber.Map{
